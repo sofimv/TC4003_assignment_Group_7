@@ -3,6 +3,10 @@ package cos418_hw1_1
 import (
 	"fmt"
 	"sort"
+	"strings"
+	"io/ioutil"
+    "log"
+    "regexp"
 )
 
 // Find the top K most common words in a text document.
@@ -14,10 +18,48 @@ import (
 // A word comprises alphanumeric characters only. All punctuations and other characters
 // are removed, e.g. "don't" becomes "dont".
 // You should use `checkError` to handle potential errors.
+
 func topWords(path string, numWords int, charThreshold int) []WordCount {
 	// TODO: implement me
 	// HINT: You may find the `strings.Fields` and `strings.ToLower` functions helpful
 	// HINT: To keep only alphanumeric characters, use the regex "[^0-9a-zA-Z]+"
+
+	//reg := regexp.MustCompile(`[a-zA-Z0-9]+`)
+    
+	//reg := regexp.MustCompile(`[^0-9a-zA-Z]+`)
+	reg := regexp.MustCompile(`'+`)
+	bs, err := ioutil.ReadFile(path)
+    if err != nil {
+        log.Fatal(err)
+    }
+	text := strings.ToLower(string(bs))
+   
+	ms:=reg.ReplaceAllString(text,"")
+	//fmt.Printf("%s",ms)
+	
+	reg2 := regexp.MustCompile(`[a-zA-Z0-9]+`)
+	
+	matches := reg2.FindAllString(ms, -1)
+    groups := make(map[string]int)
+    for _, match := range matches {
+		if strings.Count(match,"")>charThreshold {
+	      groups[match]++
+		 }
+    }
+    var WordCounts []WordCount
+    for k, v := range groups {
+        WordCounts = append(WordCounts, WordCount{k, v})
+    }
+    
+	sortWordCounts(WordCounts)
+	
+    for i := 1; i <= numWords; i++ {
+		word := WordCounts[i-1].Word
+        cnt := WordCounts[i-1].Count
+	    fmt.Printf("%v: %v", word, cnt)
+    }
+	
+	
 	return nil
 }
 
